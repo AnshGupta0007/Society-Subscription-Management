@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import API from "@/lib/api";
 
-const API = "http://localhost:5000/api";
 const MODES = ["Cash", "UPI", "Online"];
 
 export default function MonthlyPage() {

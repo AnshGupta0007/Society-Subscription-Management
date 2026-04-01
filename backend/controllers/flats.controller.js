@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 
 exports.getTotalFlats = async (req, res) => {
   try {
-    const result = await pool.query("SELECT COUNT(*) FROM flats");
+    const result = await pool.query("SELECT COUNT(*) FROM public.flats");
     res.json({ total_flats: result.rows[0].count });
   } catch (err) {
     console.log(err);
@@ -15,7 +15,7 @@ exports.getFlats = async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT id, flat_number, owner_name, flat_type, owner_email, owner_phone, is_active
-      FROM flats
+      FROM public.flats
       ORDER BY id
     `);
     res.json({ flats: result.rows });
@@ -39,7 +39,7 @@ exports.addFlat = async (req, res) => {
     await client.query('BEGIN');
 
     const flatResult = await client.query(
-      `INSERT INTO flats (flat_number, owner_name, flat_type, owner_email, owner_phone, is_active, password)
+      `INSERT INTO public.flats (flat_number, owner_name, flat_type, owner_email, owner_phone, is_active, password)
        VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
       [flat_number, owner_name, flat_type, owner_email, owner_phone, is_active ?? true, hashedPassword]
     );
@@ -47,7 +47,7 @@ exports.addFlat = async (req, res) => {
     const flatId = flatResult.rows[0].id;
 
     const plan = await client.query(
-      `SELECT id, monthly_amount FROM subscription_plans WHERE flat_type = $1 ORDER BY effective_from DESC LIMIT 1`,
+      `SELECT id, monthly_amount FROM public.subscription_plans WHERE flat_type = $1 ORDER BY effective_from DESC LIMIT 1`,
       [flat_type]
     );
 
@@ -55,7 +55,7 @@ exports.addFlat = async (req, res) => {
       const p = plan.rows[0];
       const now = new Date();
       await client.query(
-        `INSERT INTO monthly_subscriptions (flat_id, plan_id, month, amount_due, status, due_date)
+        `INSERT INTO public.monthly_subscriptions (flat_id, plan_id, month, amount_due, status, due_date)
          VALUES ($1, $2, make_date($3,$4,1), $5, 'pending', CURRENT_DATE)`,
         [flatId, p.id, now.getFullYear(), now.getMonth() + 1, p.monthly_amount]
       );
@@ -78,7 +78,7 @@ exports.updateFlat = async (req, res) => {
     const { flat_number, owner_name, flat_type, owner_email, owner_phone, is_active, password } = req.body;
 
     const fields = [flat_number, owner_name, flat_type, owner_email, owner_phone, is_active];
-    let query = `UPDATE flats SET flat_number=$1, owner_name=$2, flat_type=$3, owner_email=$4, owner_phone=$5, is_active=$6`;
+    let query = `UPDATE public.flats SET flat_number=$1, owner_name=$2, flat_type=$3, owner_email=$4, owner_phone=$5, is_active=$6`;
 
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -100,9 +100,9 @@ exports.updateFlat = async (req, res) => {
 exports.deleteFlat = async (req, res) => {
   try {
     const { id } = req.params;
-    await pool.query("DELETE FROM payments WHERE flat_id=$1", [id]);
-    await pool.query("DELETE FROM monthly_subscriptions WHERE flat_id=$1", [id]);
-    await pool.query("DELETE FROM flats WHERE id=$1", [id]);
+    await pool.query("DELETE FROM public.payments WHERE flat_id=$1", [id]);
+    await pool.query("DELETE FROM public.monthly_subscriptions WHERE flat_id=$1", [id]);
+    await pool.query("DELETE FROM public.flats WHERE id=$1", [id]);
     res.json({ success: true });
   } catch (err) {
     console.log(err);

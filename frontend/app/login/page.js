@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-
+import API from '@/lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,9 +17,10 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/resident/login', {
+      const res = await fetch(`${API}/resident/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email: email.trim(), password }),
       });
       const data = await res.json();
@@ -27,13 +28,14 @@ export default function LoginPage() {
       if (data.success) {
         localStorage.setItem('resident', JSON.stringify(data.resident));
         localStorage.setItem('resident_token', data.token);
-        document.cookie = `resident_session=1; path=/; SameSite=Lax`;
+        document.cookie = `resident_session=1; path=/; SameSite=${process.env.NODE_ENV === 'production' ? 'None; Secure' : 'Lax'}`;
         router.push('/dashboard');
       } else {
         setError(data.message || 'Invalid credentials. Please contact your admin.');
       }
     } catch (err) {
       setError('Could not connect to server. Please try again.');
+      console.error('Login error:', err);
     } finally {
       setLoading(false);
     }

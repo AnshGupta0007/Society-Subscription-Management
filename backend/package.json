@@ -1,9 +1,22 @@
 {
+  "name": "society-subscription-backend",
+  "version": "1.0.0",
+  "description": "Backend for Society Subscription Management",
+  "main": "server.js",
+  "scripts": {
+    "install": "npm install",
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": "18.x"
+  },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
+    "express-session": "^1.17.3",
     "firebase-admin": "^12.7.0",
     "jsonwebtoken": "^9.0.3",
     "next-auth": "^4.24.13",

@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import ResidentLayout from '@/app/components/ResidentLayout';
+import API from '@/lib/api';
+
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
 export default function ResidentProfilePage() {
@@ -40,9 +42,10 @@ export default function ResidentProfilePage() {
     setSaving(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/resident/profile', {
+      const response = await fetch(`${API}/resident/profile`, {
         method: 'PUT',
         headers: JSON_HEADERS,
+        credentials: 'include',
         body: JSON.stringify({ flatId: resident?.id, phone }),
       });
 
@@ -79,9 +82,10 @@ export default function ResidentProfilePage() {
 
     setPwSaving(true);
     try {
-      const res = await fetch('http://localhost:5000/api/resident/change-password', {
+      const res = await fetch(`${API}/resident/change-password`, {
         method: 'PUT',
         headers: JSON_HEADERS,
+        credentials: 'include',
         body: JSON.stringify({ flatId: resident?.id, currentPassword, newPassword }),
       });
       const data = await res.json();

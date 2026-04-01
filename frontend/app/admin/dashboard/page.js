@@ -6,7 +6,14 @@ import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, BarChart, Ba
 
 const COLORS = ["#22c55e", "#f59e0b"];
 
+const toSafeNumber = (value, fallback = 0) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
 function StatCard({ title, value, sub, accent = "#6366f1", icon }) {
+  const displayValue = typeof value === "number" && Number.isNaN(value) ? "0" : value;
+
   return (
     <div
       className="rounded-2xl p-5 relative overflow-hidden transition-all duration-200 hover:translate-y-[-2px]"
@@ -28,7 +35,7 @@ function StatCard({ title, value, sub, accent = "#6366f1", icon }) {
           </div>
         )}
       </div>
-      <p className="text-3xl font-bold tracking-tight" style={{ color: accent === "#6366f1" ? "white" : accent }}>{value}</p>
+      <p className="text-3xl font-bold tracking-tight" style={{ color: accent === "#6366f1" ? "white" : accent }}>{displayValue}</p>
       {sub && <p className="text-[11px] text-slate-700 mt-1.5">{sub}</p>}
     </div>
   );
@@ -55,10 +62,10 @@ export default function Dashboard() {
   const [monthlyData, setMonthlyData] = useState([]);
 
   useEffect(() => {
-    fetch(`${API}/flats/count`).then(r => r.json()).then(d => setTotalFlats(Number(d.total_flats)));
-    fetch(`${API}/dashboard/collection-rate`).then(r => r.json()).then(d => setCollectionRate(Number(d.collection_rate)));
-    fetch(`${API}/dashboard/total-paid`).then(r => r.json()).then(d => setTotalPaid(Number(d.total_paid)));
-    fetch(`${API}/dashboard/pending`).then(r => r.json()).then(d => setPendingAmount(Number(d.pending_amount)));
+    fetch(`${API}/flats/count`).then(r => r.json()).then(d => setTotalFlats(toSafeNumber(d.total_flats)));
+    fetch(`${API}/dashboard/collection-rate`).then(r => r.json()).then(d => setCollectionRate(toSafeNumber(d.collection_rate)));
+    fetch(`${API}/dashboard/total-paid`).then(r => r.json()).then(d => setTotalPaid(toSafeNumber(d.total_paid)));
+    fetch(`${API}/dashboard/pending`).then(r => r.json()).then(d => setPendingAmount(toSafeNumber(d.pending_amount)));
     fetch(`${API}/dashboard/transactions`).then(r => r.json()).then(d => setTransactions(d.transactions || []));
     fetch(`${API}/dashboard/monthly-collection`).then(r => r.json()).then(d => setMonthlyData(d.data || []));
   }, []);

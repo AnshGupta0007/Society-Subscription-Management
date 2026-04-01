@@ -15,7 +15,7 @@ exports.getPlans = async (req, res) => {
         flat_type,
         monthly_amount,
         effective_from
-      FROM subscription_plans
+      FROM public.subscription_plans
       ORDER BY flat_type, effective_from DESC
     `);
 
@@ -48,7 +48,7 @@ exports.updatePlan = async (req, res) => {
 
     await pool.query(
       `
-      UPDATE subscription_plans
+      UPDATE public.subscription_plans
       SET monthly_amount=$1
       WHERE id=$2
       `,

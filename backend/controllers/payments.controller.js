@@ -2,7 +2,7 @@ const pool = require("../db");
 
 exports.getFlats = async (req, res) => {
   try {
-    const result = await pool.query("select id, flat_number, flat_type from flats order by flat_number");
+    const result = await pool.query("select id, flat_number, flat_type from public.flats order by flat_number");
     res.json({ flats: result.rows });
   } catch (err) {
     console.log(err);
@@ -15,8 +15,8 @@ exports.getAmount = async (req, res) => {
     const { flat_id } = req.params;
     const result = await pool.query(
       `select sp.monthly_amount
-       from flats f
-       join subscription_plans sp on sp.flat_type = f.flat_type
+       from public.flats f
+       join public.subscription_plans sp on sp.flat_type = f.flat_type
        where f.id=$1
        order by sp.effective_from desc
        limit 1`,
@@ -34,7 +34,7 @@ exports.getPendingMonths = async (req, res) => {
     const { flat_id } = req.params;
     const result = await pool.query(
       `SELECT id, month, amount_due
-       FROM monthly_subscriptions
+       FROM public.monthly_subscriptions
        WHERE flat_id = $1
          AND status != 'paid'
          AND month <= DATE_TRUNC('month', CURRENT_DATE)
@@ -52,8 +52,8 @@ exports.getRecent = async (req, res) => {
   try {
     const result = await pool.query(
       `select f.flat_number, p.amount_paid, p.payment_mode, p.paid_at as payment_date
-       from payments p
-       join flats f on f.id = p.flat_id
+       from public.payments p
+       join public.flats f on f.id = p.flat_id
        order by p.created_at desc
        limit 10`
     );
@@ -74,7 +74,7 @@ exports.addPayment = async (req, res) => {
     }
 
     const subCheck = await client.query(
-      `SELECT id, month, amount_due, status FROM monthly_subscriptions WHERE id = $1 AND flat_id = $2`,
+      `SELECT id, month, amount_due, status FROM public.monthly_subscriptions WHERE id = $1 AND flat_id = $2`,
       [subscription_id, flat_id]
     );
 
@@ -83,7 +83,7 @@ exports.addPayment = async (req, res) => {
     }
 
     const alreadyPaid = await client.query(
-      `SELECT 1 FROM payments WHERE subscription_id = $1 LIMIT 1`,
+      `SELECT 1 FROM public.payments WHERE subscription_id = $1 LIMIT 1`,
       [subscription_id]
     );
     if (alreadyPaid.rows.length > 0) {

@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { jsPDF } from "jspdf";
+import API from "@/lib/api";
 
 export default function ReportsPage() {
 
-  const API = "http://localhost:5000/api/reports";
+  const API_REPORTS = `${API}/reports`;
 
   const [tab, setTab] = useState("monthly");
 
@@ -23,7 +24,7 @@ export default function ReportsPage() {
     try {
 
       const res = await fetch(
-        `${API}/monthly?month=${month}&year=${year}`
+        `${API_REPORTS}/monthly?month=${month}&year=${year}`
       );
 
       const data = await res.json();
@@ -44,7 +45,7 @@ export default function ReportsPage() {
     try {
 
       const res = await fetch(
-        `${API}/yearly?year=${year}`
+        `${API_REPORTS}/yearly?year=${year}`
       );
 
       const data = await res.json();

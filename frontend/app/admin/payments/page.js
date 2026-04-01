@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-const API = "http://localhost:5000/api";
+import API from "@/lib/api";
 
 function formatMonth(dateStr) {
   if (!dateStr) return "";

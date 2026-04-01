@@ -76,7 +76,7 @@ exports.sendNotification = async (req, res) => {
       }
 
       // Try by UUID/id first
-      const flatById = await pool.query(`SELECT id FROM flats WHERE id::text = $1`, [flatRefStr]);
+      const flatById = await pool.query(`SELECT id FROM public.flats WHERE id::text = $1`, [flatRefStr]);
       if (flatById.rows.length > 0) {
         targetId = flatById.rows[0].id;
       }
@@ -84,7 +84,7 @@ exports.sendNotification = async (req, res) => {
       // Fallback: try by flat_number
       if (!targetId) {
         const flatByNumber = await pool.query(
-          `SELECT id FROM flats WHERE flat_number::text = $1 LIMIT 1`,
+          `SELECT id FROM public.flats WHERE flat_number::text = $1 LIMIT 1`,
           [flatRefStr]
         );
         if (flatByNumber.rows.length > 0) {
@@ -102,7 +102,7 @@ exports.sendNotification = async (req, res) => {
 
     const insertResult = await pool.query(
       `
-      INSERT INTO notifications (title, message, target_type, target_id, sent_by)
+      INSERT INTO public.notifications (title, message, target_type, target_id, sent_by)
       VALUES ($1, $2, $3, $4, $5)
       RETURNING id, title, message, target_type, target_id, sent_by, sent_at
       `,
@@ -129,7 +129,7 @@ exports.getNotifications = async (req, res) => {
 
       result = await pool.query(
         `SELECT id, title, message, target_type, target_id, sent_at
-         FROM notifications
+         FROM public.notifications
          WHERE target_type = 'all' OR target_id::text = $1
          ORDER BY sent_at DESC LIMIT 100`,
         [flatIdStr]
@@ -138,7 +138,7 @@ exports.getNotifications = async (req, res) => {
       // Admin requesting all notifications
       result = await pool.query(
         `SELECT id, title, message, target_type, target_id, sent_at
-         FROM notifications
+         FROM public.notifications
          ORDER BY sent_at DESC LIMIT 200`
       );
     }
@@ -163,7 +163,7 @@ exports.markAsRead = async (req, res) => {
     }
 
     await pool.query(
-      `UPDATE flats SET last_read_notifications_at = NOW() WHERE id::text = $1`,
+      `UPDATE public.flats SET last_read_notifications_at = NOW() WHERE id::text = $1`,
       [flatIdStr]
     );
 
@@ -188,8 +188,8 @@ exports.getUnreadCount = async (req, res) => {
 
     const result = await pool.query(
       `SELECT COUNT(*)::int AS unread_count
-       FROM notifications n
-       JOIN flats f ON f.id::text = $1
+       FROM public.notifications n
+       JOIN public.flats f ON f.id::text = $1
        WHERE (n.target_type = 'all' OR n.target_id::text = $1)
        AND n.sent_at > COALESCE(f.last_read_notifications_at, '1970-01-01'::timestamp)`,
       [flatIdStr]

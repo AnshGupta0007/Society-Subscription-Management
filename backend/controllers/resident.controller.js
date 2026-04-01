@@ -14,7 +14,7 @@ exports.login = async (req, res) => {
 
     const result = await pool.query(
       `SELECT id, flat_number, owner_name, owner_email, owner_phone, password
-       FROM flats WHERE LOWER(owner_email) = LOWER($1)`,
+       FROM public.flats WHERE LOWER(owner_email) = LOWER($1)`,
       [email.trim()]
     );
 
@@ -44,12 +44,12 @@ exports.getDashboard = async (req, res) => {
     const { flatId } = req.body;
 
     const currentMonth = await pool.query(
-      `SELECT * FROM monthly_subscriptions WHERE flat_id = $1 ORDER BY month DESC LIMIT 1`,
+      `SELECT * FROM public.monthly_subscriptions WHERE flat_id = $1 ORDER BY month DESC LIMIT 1`,
       [flatId]
     );
 
     const allSubscriptions = await pool.query(
-      `SELECT * FROM monthly_subscriptions
+      `SELECT * FROM public.monthly_subscriptions
        WHERE flat_id = $1 AND status != 'paid'
        AND month <= DATE_TRUNC('month', CURRENT_DATE)`,
       [flatId]
@@ -59,8 +59,8 @@ exports.getDashboard = async (req, res) => {
 
     const payments = await pool.query(
       `SELECT p.*, ms.month, ms.amount_due
-       FROM payments p
-       LEFT JOIN monthly_subscriptions ms ON p.subscription_id = ms.id
+       FROM public.payments p
+       LEFT JOIN public.monthly_subscriptions ms ON p.subscription_id = ms.id
        WHERE p.flat_id = $1
        ORDER BY p.paid_at DESC LIMIT 5`,
       [flatId]
@@ -85,8 +85,8 @@ exports.getSubscriptions = async (req, res) => {
 
     const result = await pool.query(
       `SELECT ms.*, sp.monthly_amount
-       FROM monthly_subscriptions ms
-       LEFT JOIN subscription_plans sp ON ms.plan_id = sp.id
+       FROM public.monthly_subscriptions ms
+       LEFT JOIN public.subscription_plans sp ON ms.plan_id = sp.id
        WHERE ms.flat_id = $1
        AND ms.month <= DATE_TRUNC('month', CURRENT_DATE)
        ORDER BY ms.month DESC`,
@@ -119,10 +119,10 @@ exports.getSubscriptionByMonth = async (req, res) => {
       `SELECT ms.id, ms.month, ms.amount_due, ms.status, ms.due_date,
               sp.monthly_amount, f.flat_number, f.flat_type, f.owner_name,
               p.amount_paid, p.payment_mode, p.paid_at, p.transaction_ref
-       FROM monthly_subscriptions ms
-       LEFT JOIN subscription_plans sp ON ms.plan_id = sp.id
-       LEFT JOIN flats f ON f.id = ms.flat_id
-       LEFT JOIN payments p ON p.subscription_id = ms.id
+       FROM public.monthly_subscriptions ms
+       LEFT JOIN public.subscription_plans sp ON ms.plan_id = sp.id
+       LEFT JOIN public.flats f ON f.id = ms.flat_id
+       LEFT JOIN public.payments p ON p.subscription_id = ms.id
        WHERE ms.flat_id = $1
          AND EXTRACT(MONTH FROM ms.month) = $2
          AND EXTRACT(YEAR FROM ms.month) = $3
@@ -145,7 +145,7 @@ exports.updateProfile = async (req, res) => {
   try {
     const { flatId, phone } = req.body;
     const result = await pool.query(
-      `UPDATE flats SET owner_phone = $1 WHERE id = $2 RETURNING *`,
+      `UPDATE public.flats SET owner_phone = $1 WHERE id = $2 RETURNING *`,
       [phone, flatId]
     );
     res.json({ success: true, message: "Profile updated successfully", resident: result.rows[0] });
@@ -163,7 +163,7 @@ exports.changePassword = async (req, res) => {
       return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
-    const result = await pool.query(`SELECT password FROM flats WHERE id = $1`, [flatId]);
+    const result = await pool.query(`SELECT password FROM public.flats WHERE id = $1`, [flatId]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ success: false, message: "Flat not found" });
@@ -175,7 +175,7 @@ exports.changePassword = async (req, res) => {
     }
 
     const hashed = await bcrypt.hash(newPassword, 10);
-    await pool.query(`UPDATE flats SET password = $1 WHERE id = $2`, [hashed, flatId]);
+    await pool.query(`UPDATE public.flats SET password = $1 WHERE id = $2`, [hashed, flatId]);
 
     res.json({ success: true, message: "Password changed successfully" });
   } catch (err) {
@@ -190,7 +190,7 @@ exports.createPayment = async (req, res) => {
     const { flatId, subscriptionId, amount, paymentMode, transactionRef } = req.body;
 
     const subCheck = await client.query(
-      `SELECT id, flat_id, month, amount_due, status FROM monthly_subscriptions WHERE id = $1`,
+      `SELECT id, flat_id, month, amount_due, status FROM public.monthly_subscriptions WHERE id = $1`,
       [subscriptionId]
     );
 
@@ -201,13 +201,13 @@ exports.createPayment = async (req, res) => {
     await client.query('BEGIN');
 
     const paymentResult = await client.query(
-      `INSERT INTO payments (flat_id, subscription_id, amount_paid, payment_mode, transaction_ref, paid_at, receipt_url)
+      `INSERT INTO public.payments (flat_id, subscription_id, amount_paid, payment_mode, transaction_ref, paid_at, receipt_url)
        VALUES ($1, $2, $3, $4, $5, NOW(), $6) RETURNING *`,
       [flatId, subscriptionId, amount, paymentMode, transactionRef, `receipt_${transactionRef}.pdf`]
     );
 
     const updateResult = await client.query(
-      `UPDATE monthly_subscriptions SET status = 'paid' WHERE id = $1 RETURNING id, status, month, amount_due`,
+      `UPDATE public.monthly_subscriptions SET status = 'paid' WHERE id = $1 RETURNING id, status, month, amount_due`,
       [subscriptionId]
     );
 

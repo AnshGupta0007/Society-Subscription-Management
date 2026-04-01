@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ResidentLayout from '@/app/components/ResidentLayout';
+import API from '@/lib/api';
+
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
 export default function DashboardPage() {
@@ -25,9 +27,10 @@ export default function DashboardPage() {
 
   const fetchDashboard = async (flatId) => {
     try {
-      const res = await fetch('http://localhost:5000/api/resident/dashboard', {
+      const res = await fetch(`${API}/resident/dashboard`, {
         method: 'POST',
         headers: JSON_HEADERS,
+        credentials: 'include',
         body: JSON.stringify({ flatId }),
       });
       const data = await res.json();

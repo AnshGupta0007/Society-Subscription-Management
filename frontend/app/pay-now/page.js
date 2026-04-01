@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import ResidentLayout from '@/app/components/ResidentLayout';
+import API from '@/lib/api';
+
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
 export default function PayNowPage() {
@@ -28,9 +30,10 @@ export default function PayNowPage() {
 
   const fetchSubscriptions = async (flatId) => {
     try {
-      const response = await fetch('http://localhost:5000/api/resident/subscriptions', {
+      const response = await fetch(`${API}/resident/subscriptions`, {
         method: 'POST',
         headers: JSON_HEADERS,
+        credentials: 'include',
         body: JSON.stringify({ flatId }),
       });
 
@@ -79,9 +82,10 @@ export default function PayNowPage() {
       
       console.log("Sending payment:", payloadData);
 
-      const response = await fetch('http://localhost:5000/api/resident/payment', {
+      const response = await fetch(`${API}/resident/payment`, {
         method: 'POST',
         headers: JSON_HEADERS,
+        credentials: 'include',
         body: JSON.stringify(payloadData),
       });
 

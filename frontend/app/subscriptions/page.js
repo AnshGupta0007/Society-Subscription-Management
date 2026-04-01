@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ResidentLayout from '@/app/components/ResidentLayout';
+import API from '@/lib/api';
 
 export default function SubscriptionsPage() {
   const router = useRouter();
@@ -22,9 +23,10 @@ export default function SubscriptionsPage() {
   const fetchSubscriptions = async (flatId) => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/resident/subscriptions', {
+      const res = await fetch(`${API}/resident/subscriptions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ flatId }),
       });
       const data = await res.json();

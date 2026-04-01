@@ -15,7 +15,7 @@ exports.getMonthlyReport = async (req, res) => {
     /* total flats */
 
     const flats = await pool.query(
-      `SELECT COUNT(*) FROM flats WHERE is_active = true`
+      `SELECT COUNT(*) FROM public.flats WHERE is_active = true`
     );
 
 
@@ -24,7 +24,7 @@ exports.getMonthlyReport = async (req, res) => {
     const billableRes = await pool.query(
       `
       SELECT COALESCE(SUM(amount_due),0) AS billable
-      FROM monthly_subscriptions
+      FROM public.monthly_subscriptions
       WHERE EXTRACT(MONTH FROM month) = $1
       AND EXTRACT(YEAR FROM month) = $2
       `,
@@ -37,8 +37,8 @@ exports.getMonthlyReport = async (req, res) => {
     const collectedRes = await pool.query(
       `
       SELECT COALESCE(SUM(p.amount_paid),0) AS collected
-      FROM payments p
-      JOIN monthly_subscriptions ms ON ms.id = p.subscription_id
+      FROM public.payments p
+      JOIN public.monthly_subscriptions ms ON ms.id = p.subscription_id
       WHERE EXTRACT(MONTH FROM ms.month) = $1
       AND EXTRACT(YEAR FROM ms.month) = $2
       `,
@@ -52,8 +52,8 @@ exports.getMonthlyReport = async (req, res) => {
       `
       SELECT p.payment_mode,
       SUM(p.amount_paid) AS total
-      FROM payments p
-      JOIN monthly_subscriptions ms ON ms.id = p.subscription_id
+      FROM public.payments p
+      JOIN public.monthly_subscriptions ms ON ms.id = p.subscription_id
       WHERE EXTRACT(MONTH FROM ms.month) = $1
       AND EXTRACT(YEAR FROM ms.month) = $2
       GROUP BY p.payment_mode
@@ -108,8 +108,8 @@ exports.getYearlyReport = async (req, res) => {
       SELECT
         EXTRACT(MONTH FROM ms.month)::int AS month,
         SUM(p.amount_paid) AS total
-      FROM payments p
-      JOIN monthly_subscriptions ms ON ms.id = p.subscription_id
+      FROM public.payments p
+      JOIN public.monthly_subscriptions ms ON ms.id = p.subscription_id
       WHERE EXTRACT(YEAR FROM ms.month) = $1
       GROUP BY month
       ORDER BY month
@@ -121,8 +121,8 @@ exports.getYearlyReport = async (req, res) => {
     const total = await pool.query(
       `
       SELECT COALESCE(SUM(p.amount_paid),0) AS collected
-      FROM payments p
-      JOIN monthly_subscriptions ms ON ms.id = p.subscription_id
+      FROM public.payments p
+      JOIN public.monthly_subscriptions ms ON ms.id = p.subscription_id
       WHERE EXTRACT(YEAR FROM ms.month) = $1
       `,
       [year]

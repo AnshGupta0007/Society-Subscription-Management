@@ -29,6 +29,13 @@ cd frontend && npm install && npm run dev
 `backend/.env`
 ```
 JWT_SECRET=your_jwt_secret
+DATABASE_URL=postgresql://USER:PASSWORD@HOST/DB?sslmode=require
+PORT=5000
+
+# Optional pool tuning
+PG_MAX_CLIENTS=10
+PG_IDLE_TIMEOUT_MS=30000
+PG_CONNECTION_TIMEOUT_MS=10000
 ```
 
 `frontend/.env.local`
