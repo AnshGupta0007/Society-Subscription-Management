@@ -21,7 +21,8 @@ const port = Number(process.env.PORT || 5000);
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
-  process.env.FRONTEND_URL || "https://society-subscription-management-nu.vercel.app"
+  process.env.FRONTEND_URL || "https://society-subscription-management-nu.vercel.app",
+  "https://society-subscription-management-nu.vercel.app"
 ];
 
 app.use(cors({
