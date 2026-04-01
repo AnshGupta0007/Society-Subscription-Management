@@ -3,11 +3,7 @@
   "version": "1.0.0",
   "description": "Backend for Society Subscription Management",
   "main": "server.js",
-  "scripts": {
-    "install": "npm install",
-    "start": "node server.js",
-    "dev": "node server.js"
-  },
+ 
   "engines": {
     "node": "18.x"
   },
