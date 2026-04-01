@@ -11,11 +11,15 @@ function AdminLoginInner() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (status === "authenticated") router.push("/admin/dashboard");
-  }, [status, router]);
+    const hasError = Boolean(searchParams.get("error"));
+    if (status === "authenticated" && !hasError) {
+      router.push("/admin/dashboard");
+    }
+  }, [status, router, searchParams]);
 
   useEffect(() => {
-    if (searchParams.get("error")) {
+    const authError = searchParams.get("error");
+    if (authError) {
       setError("Access denied. This Google account is not authorized as admin.");
     }
   }, [searchParams]);

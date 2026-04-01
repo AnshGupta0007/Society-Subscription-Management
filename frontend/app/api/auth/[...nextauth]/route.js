@@ -3,6 +3,9 @@ import GoogleProvider from "next-auth/providers/google";
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 
+const normalizeEmail = (value) =>
+  typeof value === "string" ? value.trim().toLowerCase() : "";
+
 const handler = NextAuth({
   providers: [
     GoogleProvider({
@@ -13,15 +16,19 @@ const handler = NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
     async signIn({ user }) {
-      if (user.email !== ADMIN_EMAIL) return false;
-      return true;
+      const adminEmail = normalizeEmail(ADMIN_EMAIL);
+      const userEmail = normalizeEmail(user?.email);
+      if (!adminEmail) return false;
+      return userEmail === adminEmail;
     },
     async session({ session, token }) {
       session.user.email = token.email;
+      session.user.isAdmin = Boolean(token.isAdmin);
       return session;
     },
     async jwt({ token, user }) {
       if (user) token.email = user.email;
+      token.isAdmin = normalizeEmail(token.email) === normalizeEmail(ADMIN_EMAIL);
       return token;
     },
   },

@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
-
 const RESIDENT_PROTECTED = [
   "/dashboard",
   "/subscriptions",
@@ -40,7 +38,7 @@ export async function middleware(req) {
 
   /* ── Admin login page ── */
   if (pathname === "/admin/login") {
-    if (token && token.email === ADMIN_EMAIL) {
+    if (token?.isAdmin) {
       return NextResponse.redirect(new URL("/admin/dashboard", req.url));
     }
     return NextResponse.next();
@@ -48,8 +46,8 @@ export async function middleware(req) {
 
   /* ── Admin protected routes ── */
   if (pathname.startsWith("/admin")) {
-    if (!token || token.email !== ADMIN_EMAIL) {
-      return NextResponse.redirect(new URL("/admin/login", req.url));
+    if (!token?.isAdmin) {
+      return NextResponse.redirect(new URL("/admin/login?error=AccessDenied", req.url));
     }
   }
 
