@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function AdminLoginPage() {
+function AdminLoginInner() {
   const { status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -64,11 +64,17 @@ export default function AdminLoginPage() {
           <p className="text-slate-500 text-sm mb-8">Sign in to your admin account</p>
 
           {error && (
-            <div className="mb-5 p-3 rounded-xl text-sm flex items-center gap-2.5"
-              style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.15)", color: "#f87171" }}
+            <div
+              className="mb-5 p-3 rounded-xl text-sm flex items-center gap-2.5"
+              style={{
+                background: "rgba(239,68,68,0.08)",
+                border: "1px solid rgba(239,68,68,0.15)",
+                color: "#f87171",
+              }}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 shrink-0">
-                <circle cx="12" cy="12" r="10" /><path d="M12 8v4m0 4h.01" strokeLinecap="round" />
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 8v4m0 4h.01" strokeLinecap="round" />
               </svg>
               {error}
             </div>
@@ -96,12 +102,20 @@ export default function AdminLoginPage() {
         </div>
 
         <p className="text-center text-xs text-slate-700 mt-6">
-          Resident?{' '}
+          Resident?{" "}
           <a href="/login" className="text-slate-500 hover:text-white transition-colors">
             Go to resident portal →
           </a>
         </p>
       </div>
     </div>
+  );
+}
+
+export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AdminLoginInner />
+    </Suspense>
   );
 }
