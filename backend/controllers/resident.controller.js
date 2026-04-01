@@ -49,9 +49,10 @@ exports.getDashboard = async (req, res) => {
     );
 
     const allSubscriptions = await pool.query(
-      `SELECT * FROM public.monthly_subscriptions
+      `SELECT DISTINCT ON (month) * FROM public.monthly_subscriptions
        WHERE flat_id = $1 AND status != 'paid'
-       AND month <= DATE_TRUNC('month', CURRENT_DATE)`,
+       AND month <= DATE_TRUNC('month', CURRENT_DATE)
+       ORDER BY month, id ASC`,
       [flatId]
     );
 
@@ -84,12 +85,12 @@ exports.getSubscriptions = async (req, res) => {
     const { flatId } = req.body;
 
     const result = await pool.query(
-      `SELECT ms.*, sp.monthly_amount
+      `SELECT DISTINCT ON (ms.month) ms.*, sp.monthly_amount
        FROM public.monthly_subscriptions ms
        LEFT JOIN public.subscription_plans sp ON ms.plan_id = sp.id
        WHERE ms.flat_id = $1
        AND ms.month <= DATE_TRUNC('month', CURRENT_DATE)
-       ORDER BY ms.month DESC`,
+       ORDER BY ms.month DESC, ms.status = 'paid' DESC, ms.id ASC`,
       [flatId]
     );
 
